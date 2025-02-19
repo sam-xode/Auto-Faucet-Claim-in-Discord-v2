@@ -15,7 +15,44 @@ This Xode is designed to automatically claim faucets by sending messages to conf
 
 ## 💞 Installation
 
-### 1. Obtain Your Discord Token
+### 1. Install Python
+#### Windows:
+- Download and install Python from [Python Official Website](https://www.python.org/downloads/).
+- Make sure to check "Add Python to PATH" during installation.
+- Verify installation by running:
+  ```sh
+  python --version
+  ```
+
+#### Linux:
+- Install Python using the package manager:
+  ```sh
+  sudo apt update && sudo apt install python3 python3-pip -y
+  ```
+- Verify installation by running:
+  ```sh
+  python3 --version
+  ```
+
+### 2. Install Git
+#### Windows:
+- Download and install Git from [Git Official Website](https://git-scm.com/downloads).
+- Verify installation by running:
+  ```sh
+  git --version
+  ```
+
+#### Linux:
+- Install Git using the package manager:
+  ```sh
+  sudo apt update && sudo apt install git -y
+  ```
+- Verify installation by running:
+  ```sh
+  git --version
+  ```
+
+### 3. Obtain Your Discord Token
 Ensure you are logged into your Discord account.
 
 1. Open Developer Tools (`F12` or `Ctrl + Shift + I`).
@@ -43,18 +80,18 @@ Ensure you are logged into your Discord account.
 
 Your Discord token will be displayed in the console. Save it securely!
 
-### 2. Clone the Repository
+### 4. Clone the Repository
 ```sh
 git clone https://github.com/sam-xode/Auto-Faucet-Claim-in-Discord-v2.git
 cd Auto-Faucet-Claim-in-Discord-v2
 ```
 
-### 3. Install Dependencies
+### 5. Install Dependencies
 ```sh
 pip install -r requirements.txt
 ```
 
-### 4. First-Time Run
+### 6. First-Time Run
 The script will automatically create a `.env` file and `.json` file :
 ```sh
 python sam.py
@@ -137,4 +174,4 @@ Join our Telegram group for more bot scripts and discussions:
 For questions or contributions, reach out via:
 - **GitHub**: [sam-xode](https://github.com/sam-xode)
 - **Twitter**: [@Sam_xode](https://twitter.com/Sam_xode)
-
+- **Telegram**: [sam_xode](https://t.me/sam_xode)

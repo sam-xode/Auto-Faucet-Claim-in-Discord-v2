@@ -166,7 +166,7 @@ Use `<#channel_id>` format:
 If you use the slash command feature and don't need to solve the captcha. You can enter multiple discord tokens and choose option 1 to claim the faucet, but if you claim you need to solve a captcha, you cannot enter more than 1 discord token and you cannot use a VPS to run option 2. Option 2 can be run on Windows and make sure your browser is open and your Discord is logged in.
 
 ## 🎥 Video Tutorial
-Watch the tutorial on how to get a channel ID here: ➡️ [YouTube Tutorial](#)
+Watch the tutorial on how to use this xode ➡️ [YouTube Tutorial](https://youtu.be/Q1VCExNtVsU)
 
 ## 👤 Join Our Telegram Group!
 Join our Telegram group for more bot scripts and discussions:

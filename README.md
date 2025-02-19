@@ -52,6 +52,8 @@ This Xode is designed to automatically claim faucets by sending messages to conf
   git --version
   ```
 
+## If Python and Git are already installed, proceed to the next step.
+
 ### 3. Obtain Your Discord Token
 Ensure you are logged into your Discord account.
 

@@ -46,7 +46,7 @@ Your Discord token will be displayed in the console. Save it securely!
 ### 2. Clone the Repository
 ```sh
 git clone https://github.com/sam-xode/Auto-Faucet-Claim-in-Discord-v2.git
-cd Discord-auto-claim-faucet
+cd Auto-Faucet-Claim-in-Discord-v2
 ```
 
 ### 3. Install Dependencies

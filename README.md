@@ -123,7 +123,7 @@ Use `<#channel_id>` format:
 3. Select `Copy ID`.
 4. Insert it in the message input.
 
-### ⚠️ IMPORTANT INFORMATION MUST BE READ!
+## ⚠️ IMPORTANT INFORMATION MUST BE READ!
 If you use the slash command feature and don't need to solve the captcha. You can enter multiple discord tokens and choose option 1 to claim the faucet, but if you claim you need to solve a captcha, you cannot enter more than 1 discord token and you cannot use a VPS to run option 2. Option 2 can be run on Windows and make sure your browser is open and your Discord is logged in.
 
 ## 🎥 Video Tutorial

@@ -28,9 +28,7 @@ os.makedirs(BOT_IMAGES_DIR, exist_ok=True)
 skip_channels = {}
 slowmode_channels = {}
 
-
-
-# Pastikan file faucets.json ada
+# Make sure faucets.json file exists
 if not os.path.exists(FAUCETS_FILE):
     with open(FAUCETS_FILE, "w") as f:
         json.dump({}, f, indent=4)
@@ -48,7 +46,7 @@ def save_tokens(tokens):
 
 
 def load_faucets():
-    """Membaca file faucets.json dan mengembalikan datanya."""
+    """Read faucets.json file and return its data."""
     try:
         if not os.path.exists(FAUCETS_FILE):  
             with open(FAUCETS_FILE, "w") as file:
@@ -65,7 +63,7 @@ def load_faucets():
 
 
 def save_faucets(data):
-    """Menyimpan data ke faucets.json."""
+    """Save data to faucets.json."""
     with open("faucets.json", "w") as file:
         json.dump(data, file, indent=4)
 
@@ -76,22 +74,21 @@ def parse_time_input(time_input):
     elif "m" in time_input:
         return int(time_input.replace("m", "")) * 60
     else:
-        raise ValueError("Format waktu tidak valid. Gunakan huruf kecil 'h' atau 'm' contoh 6h = 6jam, 30m = 30menit.")
+        raise ValueError("Invalid time format. Use lowercase 'h' or 'm' e.g., 6h = 6 hours, 30m = 30 minutes.")
         
 
 def format_time(seconds):
     minutes = seconds // 60
     hours = minutes // 60
     minutes %= 60
-    return f"{hours} jam {minutes} menit" if hours > 0 else f"{minutes} menit"
+    return f"{hours} hours {minutes} minutes" if hours > 0 else f"{minutes} minutes"
 
-def konversi_waktu(detiks):
-    jam = detiks // 3600
-    detik_sisa = detiks % 3600
-    menit = detik_sisa // 60
-    detik = detik_sisa % 60
-    return jam, menit, detik
-
+def convert_time(seconds):
+    hours = seconds // 3600
+    remaining_seconds = seconds % 3600
+    minutes = remaining_seconds // 60
+    seconds = remaining_seconds % 60
+    return hours, minutes, seconds
 
 
 def download_bot_profile_image(bot_profile_url, channel_id):
@@ -114,46 +111,46 @@ def download_bot_profile_image(bot_profile_url, channel_id):
                 for chunk in response.iter_content(chunk_size=1024):
                     if chunk:
                         file.write(chunk)
-            logging.info(f"✅ Gambar profil bot berhasil disimpan: {save_path}")
+            logging.info(f"✅ Bot profile image successfully saved: {save_path}")
             return {
                 "local_path": save_path,
                 "original_url": bot_profile_url
             }
         else:
-            logging.error(f"⚠️ Gagal mengunduh gambar profil bot untuk {channel_id}. Status code: {response.status_code}")
+            logging.error(f"⚠️ Failed to download bot profile image for {channel_id}. Status code: {response.status_code}")
             return None
     except Exception as e:
-        logging.error(f"⚠️ Error saat mengunduh gambar profil bot: {str(e)}")
+        logging.error(f"⚠️ Error while downloading bot profile image: {str(e)}")
         return None
 
 def add_channel():
     faucets = load_faucets()
-    tokens_input = input("\n🔷 Masukkan daftar DISCORD_TOKENS (pisahkan dengan koma): ").split(",")
+    tokens_input = input("\n🔷 Enter DISCORD_TOKENS list (separate with comma): ").split(",")
     tokens = [t.strip() for t in tokens_input if t.strip()]
     save_tokens(tokens)
 
-    channel_id = input("\n🔷 Masukkan ID Channel: ")
+    channel_id = input("\n🔷 Enter Channel ID: ")
     if channel_id in faucets:
-        print(f"⚠️ Channel {channel_id} sudah ada di database.")
+        print(f"⚠️ Channel {channel_id} already exists in the database.")
         return
 
-    faucet_name = input("🔷 Masukkan nama faucet: ")
-    message = input("🔷 Masukkan pesan yang ingin dikirim: ")
+    faucet_name = input("🔷 Enter faucet name: ")
+    message = input("🔷 Enter message to send: ")
     
     command_id, address, bot_profile_url = "", "", ""
     bot_image_data = None
     
     if message.startswith("/"):
-        command_id = input("\n🔷 Masukkan Slash Command (contoh: /faucet): ")
-        address = input("🔷 Masukkan Alamat Wallet: ")
-        bot_profile_url = input("🔷 Masukkan Bot Profile URL: ")
+        command_id = input("\n🔷 Enter Slash Command (example: /faucet): ")
+        address = input("🔷 Enter Wallet Address: ")
+        bot_profile_url = input("🔷 Enter Bot Profile URL: ")
         
         if bot_profile_url:
             bot_image_data = download_bot_profile_image(bot_profile_url, channel_id)
             if not bot_image_data:
-                print("⚠️ Gagal mengunduh gambar bot profile. Melanjutkan tanpa gambar.")
+                print("⚠️ Failed to download bot profile image. Continuing without image.")
 
-    delay_input = input("Masukkan waktu klaim ulang otomatis (misal: 6h atau 30m): ")
+    delay_input = input("Enter auto-claim interval (e.g., 6h or 30m): ")
     claim_interval = parse_time_input(delay_input)
     
     faucets[channel_id] = {
@@ -168,9 +165,8 @@ def add_channel():
     }
     
     save_faucets(faucets)
-    print(f"✅ Format auto claim {faucet_name} pada channel: [{channel_id}] berhasil disimpan!")
-    print("\nPilih opsi 1 untuk memulai auto claim.\n")
-
+    print(f"✅ Auto claim format for {faucet_name} on channel: [{channel_id}] successfully saved!")
+    print("\nSelect option 1 to start auto claim.\n")
 
 
 def get_bot_image(channel_id, faucets_data):
@@ -203,7 +199,6 @@ def get_bot_image(channel_id, faucets_data):
     return None
 
 
-
 def claim_faucet_for_channel(channel_id, data):
     """Execute faucet claim for a specific channel"""
     global slowmode_channels
@@ -214,7 +209,7 @@ def claim_faucet_for_channel(channel_id, data):
     tokens = data.get("tokens", [])
     
     if not messages or not tokens:
-        print(f"❌ [ERROR] Data tidak lengkap untuk {faucet_name} pada channel: [{channel_id}].")
+        print(f"❌ [ERROR] Incomplete data for {faucet_name} on channel: [{channel_id}].")
         return
 
     # Get claim interval and times
@@ -230,7 +225,7 @@ def claim_faucet_for_channel(channel_id, data):
 
         if current_time < next_claim_time:
             remaining_time = (next_claim_time - current_time).total_seconds()
-            print(f"⏳ [WAIT] Channel [{channel_id}] - {faucet_name} - Waktu claim berikutnya: {format_time(int(remaining_time))}")
+            print(f"⏳ [WAIT] Channel [{channel_id}] - {faucet_name} - Next claim time: {format_time(int(remaining_time))}")
             return
 
     # Execute claims and update time
@@ -251,16 +246,13 @@ def claim_faucet_for_channel(channel_id, data):
                 faucets = load_faucets()
                 faucets[channel_id] = data
                 save_faucets(faucets)
-                print(f"✅ [SUKSES] {faucet_name} berhasil diklaim di [{channel_id}] oleh Token ke-{i+1}")
+                print(f"✅ [SUCCESS] {faucet_name} successfully claimed in [{channel_id}] by Token #{i+1}")
                 
         except requests.exceptions.RequestException as e:
-            print(f"❌ [ERROR] Gagal mengirim request untuk {faucet_name}: {str(e)}")
+            print(f"❌ [ERROR] Failed to send request for {faucet_name}: {str(e)}")
             continue
 
         time.sleep(1)
-
-
-
 
 
 def login_and_use_slash_command(channel_id, command, address, faucets_data, faucet_name):
@@ -284,38 +276,39 @@ def login_and_use_slash_command(channel_id, command, address, faucets_data, fauc
                     found = True
                     break
             except Exception as e:
-                print(f"⚠️ Error saat mencari gambar bot: {str(e)}")
+                print(f"⚠️ Error while searching for bot image: {str(e)}")
                 break
         
         if found:
-            print(f"✅ Gambar bot ditemukan dan dipilih di Channel: [{channel_id}]")
+            print(f"✅ Bot image found and selected in Channel: [{channel_id}]")
         else:
-            print(f"⚠️ Gambar bot tidak ditemukan di layar dalam 5 detik, lanjut tanpa memilih.")
+            print(f"⚠️ Bot image not found on screen within 5 seconds, continuing without selection.")
 
     time.sleep(2)
     pyautogui.write(address)
     time.sleep(3)
     pyautogui.press("enter")
+    time.sleep(6)
 
-    print(f"✅ (CLAIM {faucet_name} dengan Slash command berhasil di Channel: [{channel_id}])")
+    print(f"✅ (CLAIM {faucet_name} with Slash command successful in Channel: [{channel_id}])")
     time.sleep(8)
 
 
 def get_bot_image(channel_id, bot_profile_url):
-    """Mengembalikan path gambar bot yang sesuai dengan channel_id."""
+    """Returns the bot image path that matches the channel_id."""
     local_image_path = os.path.join(BOT_IMAGES_DIR, f"bot_avatar_{channel_id}.png")
 
-    # Jika gambar sudah ada, gunakan yang ada
+    # If image already exists, use existing one
     if os.path.exists(local_image_path):
         return local_image_path
 
-    # Jika tidak ada, unduh gambar baru dari bot_profile_url
+    # If not available, download new image from bot_profile_url
     if bot_profile_url:
         new_image_path = download_bot_profile_image(bot_profile_url, channel_id)
         if new_image_path:
-            return new_image_path  # Pastikan gambar lokal digunakan setelah diunduh
+            return new_image_path  # Make sure local image is used after download
 
-    return None  # Jika tidak ada gambar, return None
+    return None  # If no image, return None
 
 
 def send_all_slash_commands():
@@ -331,34 +324,29 @@ def send_all_slash_commands():
         faucet_name = data.get("faucet_name", "").strip()
 
         if not command:
-            print(f"⏩ Melewati {faucet_name} pada Channel: [{channel_id}] karena tidak membutuhkan fitur slash command.")
+            print(f"⏩ Skipping {faucet_name} on Channel: [{channel_id}] because it doesn't require slash command feature.")
             continue 
-        
 
-
-        # Cek apakah gambar ada secara lokal, jika tidak, unduh ulang
+        # Check if image exists locally, if not, re-download
         local_image_path = os.path.join(BOT_IMAGES_DIR, f"bot_avatar_{channel_id}.png")
         
         if not os.path.exists(local_image_path) and bot_profile_url:
             new_image_path = download_bot_profile_image(bot_profile_url, channel_id)
             if new_image_path:
-                bot_profile_url = new_image_path  # Perbarui dengan path lokal
+                bot_profile_url = new_image_path  # Update with local path
 
-                # Ambil path gambar yang sesuai
+                # Get the appropriate image path
         bot_image_path = get_bot_image(channel_id, bot_profile_url,)
 
         if not bot_image_path:
-            print(f"⚠️ Tidak dapat menemukan gambar bot untuk Channel [{channel_id}].")
+            print(f"⚠️ Cannot find bot image for Channel [{channel_id}].")
             continue
 
         if command and address:
             login_and_use_slash_command(channel_id, command, address, bot_image_path, faucet_name)
         else:
-            print(f"⚠️ Data tidak lengkap untuk Channel ID: [{channel_id}], melewati...")
+            print(f"⚠️ Incomplete data for Channel ID: [{channel_id}], skipping...")
             continue
-
-
-
 
         for token in tokens:
             headers = {"Authorization": token, "Content-Type": "application/json"}
@@ -376,131 +364,87 @@ def send_all_slash_commands():
                 }
             }
             for i, headers in enumerate(headers_list):
-                        try:
-                            response = requests.post(
-                                "https://discord.com/api/v9/interactions",
-                                headers=headers,
-                                json=payload
-                            )
-                            response.raise_for_status()
-                        except requests.exceptions.HTTPError as e:
-                            if response.status_code == 403:
-                                print(f"\n❌ [ERROR] {faucet_name} Token ke-{i+1} tidak memiliki izin di channel [{channel_id}]")
-                            elif response.status_code == 429:
-                                retry_after = response.json().get("retry_after", 0)
-                            continue
+                try:
+                    response = requests.post(
+                        "https://discord.com/api/v9/interactions",
+                        headers=headers,
+                        json=payload
+                    )
+                    response.raise_for_status()
+                except requests.exceptions.HTTPError as e:
+                    if response.status_code == 403:
+                        print(f"\n❌ [ERROR] {faucet_name} Token #{i+1} doesn't have permission in channel [{channel_id}]")
+                    elif response.status_code == 429:
+                        retry_after = response.json().get("retry_after", 0)
+                    continue
         
             if response.status_code == 200:
-                    claim_times[faucet_name] = current_time 
-                    print(f"\n✅ [SUKSES] {faucet_name} berhasil diklaim di Channel: [{channel_id}] oleh Token ke-{i+1}")
-
-
-
-
+                claim_times[faucet_name] = current_time 
+                print(f"\n✅ [SUCCESS] {faucet_name} successfully claimed in Channel: [{channel_id}] by Token #{i+1}")
 
 
 def claim_faucet():
     global auto_claim_enabled
     faucets = load_faucets()
     if not faucets:
-        print("\n ⚠️  Tidak ada data faucet yang tersimpan. Tambahkan data klaim faucet dulu di opsi 3.")
+        print("\n⚠️ No faucet data stored. First add faucet claim data in option 3.")
         return
 
-
-    print("\n✅ Auto claim diaktifkan!\n")
-    auto_claim_enabled = True
+    print("\n✅ Auto claim activated!\n")
+    auto_claim_enabled = True  # Set this to True and it should stay True
+    
+    print("\n📌 Auto claim will continue running in the background according to the set time.")
+    print("📌 You can return to the main menu and use other options.\n")
 
     current_time = datetime.now()
-
-    for channel_id, data in faucets.items():
-        perform_claim(channel_id, data)
-        faucet_name = data.get("faucet_name", "Unknown")
-        messages = data.get("messages", [])
-        claim_times = data.get("claim_times", {})  # Pastikan ini dictionary
-        tokens = data.get("tokens", [])
-
-        if not isinstance(claim_times, dict):  # Jika bukan dictionary, reset ke dictionary kosong
-            claim_times = {}
-
-        if not messages:
-            print(f"\n❌ [ERROR] Tidak ada pesan yang disimpan untuk {faucet_name}.")
-            continue
-
-        if not tokens:
-            print(f"\n❌ [ERROR] Tidak ada discord token yang tersedia untuk {faucet_name}.")
-            continue
-        
-        threads = []
-
-    remaining = slowmode_channels.get(channel_id, 0) - time.time()
-    if channel_id not in slowmode_channels:
-        remaining = 0
+    
+    threads = []
+    
     for channel_id, data in faucets.items():
         if channel_id in slowmode_channels:
-            print(f"\n⏳ [SKIP]  {faucet_name} Channel: [{channel_id}] masih dalam slowmode ({remaining:.2f} detik lagi).")
-            continue
+            remaining = slowmode_channels[channel_id] - time.time()
+            if remaining > 0:
+                print(f"⏳ [SKIP] {data.get('faucet_name', 'Unknown')} Channel: [{channel_id}] still in slowmode ({remaining:.2f} seconds left).")
+                continue
 
-
-
-        thread = threading.Thread(target=claim_faucet_for_channel, args=(channel_id, data))
+        thread = threading.Thread(target=perform_immediate_claim, args=(channel_id, data))
         threads.append(thread)
         thread.start()
 
     for thread in threads:
         thread.join()
 
-        # Gunakan setiap bot token untuk mengklaim faucet
-        for i, token in enumerate(tokens):
-            headers = {"Authorization": token, "Content-Type": "application/json"}
-            payload = {"content": messages[i % len(messages)]}  # Rotasi pesan jika banyak
-
-            try:
-                response = requests.post(
-                    f"https://discord.com/api/v9/channels/{channel_id}/messages",
-                    headers=headers,
-                    json=payload
-                )
-                response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                if response.status_code == 403:
-                    print(f"\n❌ [ERROR] {faucet_name} Tidak ada izin untuk mengirim pesan ke channel [{channel_id}]")
-                elif response.status_code == 429:
-                    retry_after = response.json().get("retry_after", 0)
-                    print(f"\n⚠️  [SLOWMODE] {faucet_name} terkena slowmode channel: [{channel_id}], menunggu {retry_after} detik")
-                    print("\n🔄 Kembali ke menu utama...\n")
-                else:
-                    print(f"\n❌ [GAGAL] {faucet_name} channel: [{channel_id}] tidak diklaim. Status: {response.status_code}")
-                continue
-
-            if response.status_code == 200:
-                claim_times[channel_id] = current_time.strftime("%Y-%m-%d %H:%M:%S")  # Simpan waktu klaim sebagai string
-                data["claim_times"] = claim_times  # Update ke dalam data faucet
-                save_faucets(faucets)  # Simpan perubahan ke JSON
-
-                print(f"\n✅ [SUKSES] {faucet_name} berhasil diklaim di Channel: {channel_id} oleh Token ke-{i+1}")
-
-            time.sleep(1)  # Delay antar request untuk menghindari spam
-
 
 def check_slowmode():
-    """Periksa apakah slowmode telah berakhir untuk channel tertentu dan hapus dari daftar."""
+    """Check if slowmode has ended for certain channels and remove from list."""
     global slowmode_channels
     while True:
-        now = time.time()
-        expired_channels = [ch for ch, end_time in slowmode_channels.items() if now >= end_time]
-
-        for ch in expired_channels:
-            print(f"\n ✅   Slowmode selesai pada channel: [{ch}], menghapus dari daftar slowmode.")
-            del slowmode_channels[ch]
-        
-        if expired_channels:
-            save_slowmode_channels()
-
-        time.sleep(10) 
+        try:
+            now = time.time()
+            expired_channels = [ch for ch, end_time in slowmode_channels.items() if now >= end_time]
+            
+            # Claim faucet for channels whose slowmode has ended
+            if expired_channels:
+                faucets = load_faucets()
+                
+                for ch in expired_channels:
+                    if ch in faucets and auto_claim_enabled:
+                        print(f"\n✅ Slowmode finished on channel: [{ch}], attempting automatic claim...")
+                        perform_claim(ch, faucets[ch])
+                    
+                    print(f"✅ Removing channel [{ch}] from slowmode list.")
+                    del slowmode_channels[ch]
+                
+                save_slowmode_channels()
+            
+            time.sleep(5)
+        except Exception as e:
+            print(f"❌ [ERROR] Error in slowmode check: {str(e)}")
+            time.sleep(10)
 
 SLOWMODE_FILE = "slowmode_channels.json"
 def load_slowmode_channels():
-    """Membaca file slowmode_channels.json dan mengembalikan datanya."""
+    """Read slowmode_channels.json file and return its data."""
     try:
         with open(SLOWMODE_FILE, "r") as file:
             return json.load(file)
@@ -508,104 +452,40 @@ def load_slowmode_channels():
         return {}
 
 def save_slowmode_channels():
-    """Menyimpan data slowmode_channels ke slowmode_channels.json."""
+    """Save slowmode_channels data to slowmode_channels.json."""
     with open(SLOWMODE_FILE, "w") as file:
         json.dump(slowmode_channels, file, indent=4)
 
 def list_slowmode_channels():
-    """Tampilkan daftar channel yang terkena slowmode."""
+    """Display list of channels in slowmode."""
     if not slowmode_channels:
-        print("\n✅ Tidak ada channel yang terkena slowmode.")
+        print("\n ✅  No channels in slowmode.")
     else:
-        print("\n ⚠️  Daftar channel dalam slowmode:")
+        print("\n ⚠️  List of channels in slowmode:")
+        print("-----------------------------")
         for ch, end_time in slowmode_channels.items():
-            remaining = max(0, end_time - time.time())  # Hindari nilai negatif
-            print(f"  - Channel {ch}: {remaining:.2f} detik lagi")
-
-
-def list_faucets():
-    faucets = load_faucets()
-    if not faucets:
-        print("🚫 Tidak ada data claim faucet yang terdaftar.")
-        return
-    print("Data claim faucet yang terdaftar:")
-    for channel_id, data in faucets.items():
-        print(f"- {data['faucet_name']} [{channel_id}]")
-
-
-def claim_faucet_for_channel(channel_id, data):
-    print(f"\n🔄 Mengklaim faucet untuk channel: {channel_id}")
-    time.sleep(1) 
-
-
-auto_claim_enabled = False
-
-def start_auto_claim():
-    """Mengelola proses auto claim"""
-    global auto_claim_enabled
-    
-    while True:
-        # Tunggu sampai data tersedia
-        while True:
+            remaining = max(0, end_time - time.time())  # Avoid negative values
+            
+            # Try to get faucet name if available
             faucets = load_faucets()
-            if faucets:
-                break
-            time.sleep(1)
-        
-        # Tunggu sampai auto claim diaktifkan melalui opsi 1
-        if not auto_claim_enabled:
-            time.sleep(1)
-            continue
-            
-        current_time = datetime.now()
-        
-        for channel_id, data in faucets.items():
-            # Dapatkan interval klaim
-            claim_interval = data.get("claim_interval", 0)
-            if isinstance(claim_interval, dict):
-                claim_interval = next(iter(claim_interval.values())) if claim_interval else 0
-            
-            # Dapatkan waktu klaim terakhir
-            claim_times_dict = data.get("claim_times", {})
-            if not isinstance(claim_times_dict, dict):
-                claim_times_dict = {}
-            
-            last_claim_time = claim_times_dict.get(channel_id)
-            if last_claim_time:
-                try:
-                    last_claim_dt = datetime.strptime(last_claim_time, "%Y-%m-%d %H:%M:%S")
-                    next_claim_time = last_claim_dt + timedelta(seconds=int(claim_interval))
-                    
-                    if current_time >= next_claim_time:
-                        perform_claim(channel_id, data)
-                except (ValueError, TypeError) as e:
-                    continue
-            else:
-                # Untuk klaim pertama, tunggu aktivasi dari opsi 1
-                if auto_claim_enabled:
-                    perform_claim(channel_id, data)
+            faucet_name = "Unknown"
+            if ch in faucets:
+                faucet_name = faucets[ch].get("faucet_name", "Unknown")
+                
+            print(f"  - {faucet_name} Channel [{ch}]: {remaining:.2f} seconds left")
 
-        time.sleep(60)
-
-
-
-def perform_claim(channel_id, data):
-    """Melakukan klaim aktual ke Discord"""
+def perform_immediate_claim(channel_id, data):
+    """Perform immediate claim for a channel, regardless of previous claim status"""
     current_time = datetime.now()
     faucet_name = data.get("faucet_name", "Unknown")
     messages = data.get("messages", [])
     tokens = data.get("tokens", [])
     
     if not messages or not tokens:
-        return
+        print(f"❌ [ERROR] Incomplete data for {faucet_name} on channel: [{channel_id}]")
+        return False
 
-    # Periksa slowmode
-    if channel_id in slowmode_channels:
-        remaining = slowmode_channels[channel_id] - time.time()
-        if remaining > 0:
-            return
-
-    # Lakukan klaim
+    # Process the claim
     success = False
     for i, token in enumerate(tokens):
         headers = {"Authorization": token, "Content-Type": "application/json"}
@@ -620,7 +500,235 @@ def perform_claim(channel_id, data):
             
             if response.status_code == 200:
                 success = True
-                # Update waktu klaim hanya jika berhasil
+                # Update claim time
+                claim_times_dict = data.get("claim_times", {})
+                if not isinstance(claim_times_dict, dict):
+                    claim_times_dict = {}
+                claim_times_dict[channel_id] = current_time.strftime("%Y-%m-%d %H:%M:%S")
+                data["claim_times"] = claim_times_dict
+                
+                # Save updated data
+                faucets = load_faucets()
+                faucets[channel_id] = data
+                save_faucets(faucets)
+                
+                # Calculate and display next claim time
+                claim_interval = data.get("claim_interval", 0)
+                next_claim_time = current_time + timedelta(seconds=claim_interval)
+                hours, minutes, seconds = convert_time(claim_interval)
+                time_format = ""
+                if hours > 0:
+                    time_format += f"{hours} hours "
+                if minutes > 0:
+                    time_format += f"{minutes} minutes "
+                if seconds > 0:
+                    time_format += f"{seconds} seconds"
+                
+                print(f"✅ [SUCCESS] {faucet_name} successfully claimed in [{channel_id}] by Token #{i+1}")
+                print(f"⏰ Next claim for [{channel_id}] - {faucet_name} will be in {time_format} at {next_claim_time.strftime('%H:%M:%S %d-%m-%Y')}")
+                return True
+                
+            elif response.status_code == 429:
+                retry_after = response.json().get("retry_after", 0)
+                slowmode_channels[channel_id] = time.time() + retry_after
+                print(f"⚠️ [SLOWMODE] {faucet_name} hit slowmode in channel: [{channel_id}], waiting {retry_after:.2f} seconds")
+                save_slowmode_channels()
+                return False
+                
+        except requests.exceptions.RequestException as e:
+            print(f"❌ [ERROR] Failed to send request for {faucet_name}: {str(e)}")
+            continue
+
+        time.sleep(1)
+    
+    return success
+
+
+def list_faucets():
+    faucets = load_faucets()
+    if not faucets:
+        print(" 🚫  No faucet claim data registered.")
+        return
+    print("✅ Registered faucet claim data:")
+    print("-----------------------------")
+    for channel_id, data in faucets.items():
+        print(f"- {data['faucet_name']} [{channel_id}]")
+
+
+def show_claim_countdown():
+    """Show the remaining time until the next automatic claim for each channel"""
+    faucets = load_faucets()
+    if not faucets:
+        print("\n 🚫  No faucet claim data registered.")
+        return
+        
+    current_time = datetime.now()
+    print("\n ⏰  Faucet Claim Countdown:")
+    print("-----------------------------")
+    
+    has_countdowns = False
+    
+    for channel_id, data in faucets.items():
+        faucet_name = data.get("faucet_name", "Unknown")
+        claim_interval = data.get("claim_interval", 0)
+        claim_times_dict = data.get("claim_times", {})
+        
+        if not isinstance(claim_times_dict, dict):
+            claim_times_dict = {}
+            
+        last_claim_time = claim_times_dict.get(channel_id)
+        
+        if last_claim_time and claim_interval > 0:
+            try:
+                last_claim_dt = datetime.strptime(last_claim_time, "%Y-%m-%d %H:%M:%S")
+                next_claim_time = last_claim_dt + timedelta(seconds=claim_interval)
+                
+                if current_time < next_claim_time:
+                    remaining_seconds = (next_claim_time - current_time).total_seconds()
+                    hours, minutes, secs = convert_time(int(remaining_seconds))
+                    
+                    status = " ⏳  Waiting"
+                    if channel_id in slowmode_channels:
+                        status = " ⚠️  In Slowmode"
+                    
+                    countdown_str = ""
+                    if hours > 0:
+                        countdown_str += f"{hours}h "
+                    if minutes > 0:
+                        countdown_str += f"{minutes}m "
+                    if secs > 0 or (hours == 0 and minutes == 0):
+                        countdown_str += f"{secs}s"
+                    
+                    print(f"{status} | {faucet_name} [{channel_id}] | Next claim in: {countdown_str.strip()} | {next_claim_time.strftime('%H:%M:%S %d-%m-%Y')}")
+                    has_countdowns = True
+                else:
+                    if auto_claim_enabled:
+                        print(f" 🔄  Ready | {faucet_name} [{channel_id}] | Claim pending (will claim soon)")
+                    else:
+                        print(f" ⏳  Waiting | {faucet_name} [{channel_id}] | Ready to claim (waiting for next interval)")
+                    has_countdowns = True
+            except (ValueError, TypeError) as e:
+                print(f"⚠️ Error with time data for {faucet_name} [{channel_id}]: {e}")
+        else:
+            if auto_claim_enabled:  # Jika auto claim aktif
+                print(f" 🔄  Active | {faucet_name} [{channel_id}] | Will claim according to set interval")
+            else:
+                print(f" 🆕  New | {faucet_name} [{channel_id}] | No previous claims")
+            has_countdowns = True
+    
+    if not has_countdowns:
+        print("No active countdown timers found.")
+    
+    print("\n 📌  Status Data:")
+    print("-----------------------------")
+    print(" ⏳  Waiting - Will claim when timer expires")
+    print(" ⚠️  In Slowmode - Channel is in slowmode, will attempt after slowmode ends")
+    print(" 🔄  Active/Ready - Will claim according to set interval")
+    print(" 🆕  New - First claim pending\n")
+
+
+def claim_faucet_for_channel(channel_id, data):
+    print(f"\n🔄 Claiming faucet for channel: {channel_id}")
+    time.sleep(1) 
+
+
+auto_claim_enabled = False
+
+def start_auto_claim():
+    """Manage auto claim process"""
+    global auto_claim_enabled
+    
+    while True:
+        try:
+            faucets = load_faucets()
+            if not faucets:
+                time.sleep(5)
+                continue
+            
+            current_time = datetime.now()
+            
+            if auto_claim_enabled:  # Check if auto claim is enabled
+                for channel_id, data in faucets.items():
+                    # Skip if channel in slowmode
+                    if channel_id in slowmode_channels and time.time() < slowmode_channels[channel_id]:
+                        continue
+                        
+                    # Get claim interval
+                    claim_interval = data.get("claim_interval", 0)
+                    if not isinstance(claim_interval, (int, float)):
+                        if isinstance(claim_interval, dict):
+                            claim_interval = next(iter(claim_interval.values())) if claim_interval else 0
+                        else:
+                            claim_interval = 0
+                    
+                    # Get last claim time
+                    claim_times_dict = data.get("claim_times", {})
+                    if not isinstance(claim_times_dict, dict):
+                        claim_times_dict = {}
+                    
+                    last_claim_time = claim_times_dict.get(channel_id)
+                    
+                    should_claim = False
+                    
+                    if last_claim_time:
+                        try:
+                            last_claim_dt = datetime.strptime(last_claim_time, "%Y-%m-%d %H:%M:%S")
+                            next_claim_time = last_claim_dt + timedelta(seconds=int(claim_interval))
+                            
+                            # If time has come for next claim
+                            if current_time >= next_claim_time:
+                                should_claim = True
+                        except (ValueError, TypeError) as e:
+                            print(f"⚠️ Error parsing time: {e}")
+                            should_claim = True
+                    else:
+                        # For new channels, claim immediately
+                        should_claim = True
+                    
+                    if should_claim:
+                        perform_immediate_claim(channel_id, data)
+            
+            time.sleep(5)
+        except Exception as e:
+            print(f"❌ [ERROR] Error in auto claim: {str(e)}")
+            time.sleep(10)
+
+
+def perform_claim(channel_id, data):
+    """Perform actual claim to Discord"""
+    global slowmode_channels
+    current_time = datetime.now()
+    faucet_name = data.get("faucet_name", "Unknown")
+    messages = data.get("messages", [])
+    tokens = data.get("tokens", [])
+    claim_interval = data.get("claim_interval", 0)
+    
+    if not messages or not tokens:
+        return False
+
+    # Check slowmode
+    if channel_id in slowmode_channels:
+        remaining = slowmode_channels[channel_id] - time.time()
+        if remaining > 0:
+            print(f"⏳ [WAIT] Channel [{channel_id}] - {faucet_name} still in slowmode ({remaining:.2f} seconds left)")
+            return False
+
+    # Perform claim
+    success = False
+    for i, token in enumerate(tokens):
+        headers = {"Authorization": token, "Content-Type": "application/json"}
+        payload = {"content": messages[i % len(messages)]}
+
+        try:
+            response = requests.post(
+                f"https://discord.com/api/v9/channels/{channel_id}/messages",
+                headers=headers,
+                json=payload
+            )
+            
+            if response.status_code == 200:
+                success = True
+                # Update claim time only if successful
                 claim_times_dict = data.get("claim_times", {})
                 if not isinstance(claim_times_dict, dict):
                     claim_times_dict = {}
@@ -629,21 +737,36 @@ def perform_claim(channel_id, data):
                 faucets = load_faucets()
                 faucets[channel_id] = data
                 save_faucets(faucets)
-                print(f"✅ [SUKSES] {faucet_name} berhasil diklaim di [{channel_id}] oleh Token ke-{i+1}\n")
+                
+                # Calculate next claim time
+                next_claim_time = current_time + timedelta(seconds=claim_interval)
+                hours, minutes, seconds = convert_time(claim_interval)
+                time_format = ""
+                if hours > 0:
+                    time_format += f"{hours} hours "
+                if minutes > 0:
+                    time_format += f"{minutes} minutes "
+                if seconds > 0:
+                    time_format += f"{seconds} seconds"
+                
+                print(f"✅ [SUCCESS] {faucet_name} successfully claimed in [{channel_id}] by Token #{i+1}")
+                print(f"⏰ [{channel_id}] - {faucet_name} will be automatically claimed in {time_format} at {next_claim_time.strftime('%H:%M:%S %d-%m-%Y')}")
+                return True
                 
             elif response.status_code == 429:
                 retry_after = response.json().get("retry_after", 0)
                 slowmode_channels[channel_id] = time.time() + retry_after
+                print(f"⚠️ [SLOWMODE] {faucet_name} hit slowmode channel: [{channel_id}], waiting {retry_after:.2f} seconds")
                 save_slowmode_channels()
-                break
+                return False
                 
-        except requests.exceptions.RequestException:
+        except requests.exceptions.RequestException as e:
+            print(f"❌ [ERROR] Failed to send request for {faucet_name}: {str(e)}")
             continue
 
-        if success:
-            break
-            
         time.sleep(1)
+    
+    return success
 
 
 threading.Thread(target=start_auto_claim, daemon=True).start()
@@ -654,18 +777,20 @@ slowmode_thread = threading.Thread(target=check_slowmode, daemon=True)
 slowmode_thread.start()
 
 
-
 def main():
     while True:
-        print("\n📌  Pilih opsi:")
-        print("1. Kirim semua pesan biasa")
-        print("2. Kirim semua pesan dengan slash command (WINDOWS ONLY)")
-        print("3. Tambahkan channel baru")
-        print("4. Tampilkan channel yang terdaftar")
-        print("5. Tampilkan channel yang terkena slowmode")
-        print("6. Keluar")
+        print("\n📌  Select option:")
+        print("-----------------------------")
+        print("1. Send all regular messages")
+        print("2. Send all messages with slash command (WINDOWS ONLY)")
+        print("3. Add new channel & new messages")
+        print("4. Show registered channels")
+        print("5. Show channels in slowmode")
+        print("6. Show faucet claim countdown")
+        print("7. Exit")
 
-        choice = input("\nMasukkan pilihan (1/2/3/4/5/6): ")
+        choice = input("\nEnter choice (1/2/3/4/5/6/7): " )
+        print("\n")
 
         if choice == "1":
             claim_faucet()
@@ -676,17 +801,20 @@ def main():
         elif choice == "4":
             list_faucets()
         elif choice == "5":
-            list_slowmode_channels ()
+            list_slowmode_channels()
         elif choice == "6":
-            print("\n🚪 Keluar dari program. Terimakasih telah menggunakan xode dari <SamXode/>\n")
+            show_claim_countdown()
+        elif choice == "7":
+            print("\n🚪 Exiting program. Thank you for using xode from <SamXode/>\n")
             exit()
         else:
-            print("❌ [ERROR] Pilihan tidak valid, coba lagi.")
+            print("❌ [ERROR] Invalid choice, try again.")
+
 
 if __name__ == "__main__":
     try:
         faucets = load_faucets()
         main()
     except KeyboardInterrupt:
-        print("\n👋 Program dihentikan oleh pengguna. Terimakasih telah menggunakan xode dari <SamXode/> \n")
+        print("\n👋 Program stopped by user. Thank you for using xode from <SamXode/> \n")
         exit()
